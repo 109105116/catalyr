@@ -19,21 +19,20 @@ export default function ThemeToggle() {
     setCurrentTheme(theme);
   }, [theme]);
 
-  React.useEffect(() => {
-    const keyDownHandler = (e: KeyboardEvent) => {
-      if (e.code === "KeyT") {
-        const newTheme = currentTheme === "dark" ? "light" : "dark";
-        setTheme(newTheme);
-        setCurrentTheme(newTheme);
-      }
-    };
-    document.addEventListener("keydown", keyDownHandler);
+  // React.useEffect(() => {
+  //   const keyDownHandler = (e: KeyboardEvent) => {
+  //     if (e.code === "KeyT") {
+  //       const newTheme = currentTheme === "dark" ? "light" : "dark";
+  //       setTheme(newTheme);
+  //       setCurrentTheme(newTheme);
+  //     }
+  //   };
+  //   document.addEventListener("keydown", keyDownHandler);
 
-    // clean up
-    return () => {
-      document.removeEventListener("keydown", keyDownHandler);
-    };
-  }, [currentTheme, setTheme]);
+  //   return () => {
+  //     document.removeEventListener("keydown", keyDownHandler);
+  //   };
+  // }, [currentTheme, setTheme]);
 
   return (
     <>

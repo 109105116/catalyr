@@ -8,14 +8,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
-import { User } from "next-auth";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { FC } from "react";
 import UpdatePostsButton from "./update-posts-button";
+import { User } from "@prisma/client";
 
 interface UserMenuProps {
-  user: Pick<User, "name" | "image" | "email">;
+  user: User;
 }
 
 const UserMenu: FC<UserMenuProps> = ({ user }) => {
@@ -38,11 +38,15 @@ const UserMenu: FC<UserMenuProps> = ({ user }) => {
         </div>
         <DropdownMenuSeparator />
 
-        <UpdatePostsButton />
-
         <DropdownMenuItem disabled={true}>
           <Link href="/settings">Settings</Link>
         </DropdownMenuItem>
+        <DropdownMenuItem disabled={true}>
+          <Link href="/settings">Profile</Link>
+        </DropdownMenuItem>
+
+        {user.isAdmin && <UpdatePostsButton />}
+
         <DropdownMenuSeparator />
         <DropdownMenuItem
           className="cursor-pointer"
