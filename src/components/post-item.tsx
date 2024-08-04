@@ -60,7 +60,7 @@ export default function PostItem({ session, post }: PostItemProps) {
         setUserVote(prevUserVote);
       }
     },
-    [post.id, score, userVote]
+    [post.id, score, userVote, router, session]
   );
 
   return (

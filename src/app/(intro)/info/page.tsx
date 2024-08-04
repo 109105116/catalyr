@@ -7,11 +7,11 @@ export default function Home() {
         <p className="indent-3">
           Welcome to ______! We know the feeling of uncertainty as a
           pre-collegiate student, wanting to reach excellence but not knowing
-          how. That's why we gather the stories and advice of accomplished
+          how. That&apos;s why we gather the stories and advice of accomplished
           students from across the US to offer insights and guidance to
-          exploring young achievers. Here, you'll find wisdom from past olympiad
-          medalists, writing scholars, science fair winners, and far more. So
-          what're you waiting for!
+          exploring young achievers. Here, you&apos;ll find wisdom from past
+          olympiad medalists, writing scholars, science fair winners, and far
+          more. So what&apos;re you waiting for!
         </p>
       </div>
       <Link
