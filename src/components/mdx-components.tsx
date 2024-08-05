@@ -2,6 +2,7 @@ import React from "react";
 import { MDXRemoteProps } from "next-mdx-remote/rsc";
 import { cn } from "@/lib/utils";
 import Image from "./ui/mdx-image";
+import { Callout } from "./callout";
 
 interface ComponentWithClassNameProps {
   className?: string;
@@ -117,6 +118,7 @@ const components: MDXRemoteProps["components"] = {
     <blockquote
       className={cn(
         "mt-6 border-l-2 border-accent pl-6 italic [&>*]:text-muted-foreground",
+        // "before:content-none after:content-none",
         className
       )}
       {...props}
@@ -199,7 +201,7 @@ const components: MDXRemoteProps["components"] = {
     />
   ),
   img: Image,
-  // Callout,
+  Callout,
   // Card: MdxCard,
 };
 
