@@ -1,14 +1,20 @@
 import components from "@/components/mdx-components";
+import PostOptions from "@/components/post-options";
 import { Tag } from "@/components/tag";
+import { getAuthSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { formatDateToWord } from "@/lib/utils";
 import "@/styles/mdx.css";
+import { ExtendedComment } from "@/types/db";
+import { Comment } from "@prisma/client";
+const CommentSection = dynamic(() => import("@/components/comment-section"), {
+  loading: () => <p>Loading...</p>,
+});
+
 import { MDXRemote } from "next-mdx-remote/rsc";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import rehypeAutolinkHeadings, {
-  Options as AutolinkHeadingsOptions,
-} from "rehype-autolink-headings";
 import rehypePrettyCode, {
   Options as PrettyCodeOptions,
 } from "rehype-pretty-code";
@@ -31,30 +37,12 @@ const rehypePrettyCodeOptions: Partial<PrettyCodeOptions> = {
       node.children = [{ type: "text", value: " " }];
     }
   },
-  // onVisitHighlightedLine(node) {
-  //   node.properties.className.push("highlighted");
-  // },
-  // onVisitHighlightedWord(node, id) {
-  //   node.properties.className = ["word", `${id}`];
-  // },
-};
-
-const rehypeAutolinkHeadingsOptions = {
-  behavior: "wrap",
-  properties: {
-    className: ["anchor-link"],
-    title: "Permalink to this heading",
-  },
-  content: {
-    type: "element",
-    tagName: "span",
-    properties: { className: ["anchor-icon"] },
-    children: [{ type: "text", value: "#" }],
-  },
 };
 
 async function getPostFromParams(params: PostPageProps["params"]) {
   const fileName = params?.slug?.join("/");
+  const session = await getAuthSession();
+
   const post = await db.post.findUnique({
     where: { fileName },
     include: {
@@ -63,14 +51,24 @@ async function getPostFromParams(params: PostPageProps["params"]) {
           tag: true,
         },
       },
-      author: true,
+      author: {
+        select: {
+          name: true,
+        },
+      },
+      votes: {
+        where: {
+          userId: session?.user.id,
+        },
+      },
     },
   });
 
   if (post) {
     return {
       ...post,
-      tags: post.tags.map((pt) => pt.tag.name),
+      userVote: post.votes.length > 0 ? post.votes[0].type : null,
+      votes: undefined,
     };
   }
 
@@ -92,6 +90,101 @@ export default async function PostPage({ params }: PostPageProps) {
   if (!post) {
     notFound();
   }
+
+  const session = await getAuthSession();
+
+  const comments = await db.comment.findMany({
+    where: { postId: post.id, replyToId: null },
+    include: {
+      author: true,
+      replies: {
+        include: {
+          author: true,
+          replies: {
+            include: {
+              author: true,
+              replies: {
+                include: {
+                  author: true,
+                  replies: {
+                    include: {
+                      author: true,
+                      replies: {
+                        include: {
+                          author: true,
+                          replies: {
+                            include: {
+                              author: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      votes: true,
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const userId = session?.user.id;
+
+  type CommentWithReply = Comment & {
+    replies: CommentWithReply[];
+  };
+
+  async function transformComment(
+    comment: CommentWithReply,
+    userId: string | undefined
+  ): Promise<ExtendedComment> {
+    const userVote = userId
+      ? await db.commentVote.findUnique({
+          where: {
+            userId_commentId: {
+              userId,
+              commentId: comment.id,
+            },
+          },
+          select: {
+            type: true,
+          },
+        })
+      : null;
+
+    const transformedReplies = await Promise.all(
+      (comment.replies || []).map((reply) => transformComment(reply, userId))
+    );
+
+    return {
+      ...comment,
+      userVote: userVote ? userVote.type : null,
+      replies: transformedReplies,
+    };
+  }
+
+  async function getTransformedComments(
+    comments: CommentWithReply[],
+    userId: string | undefined
+  ): Promise<ExtendedComment[]> {
+    return Promise.all(
+      comments.map((comment) => transformComment(comment, userId))
+    );
+  }
+
+  const transformedComments = await getTransformedComments(comments, userId);
+
+  function countComments(comments: ExtendedComment[] = []): number {
+    return comments.reduce((count, comment) => {
+      return count + 1 + countComments(comment.replies);
+    }, 0);
+  }
+
+  const commentCount = countComments(transformedComments);
 
   return (
     <>
@@ -126,7 +219,7 @@ export default async function PostPage({ params }: PostPageProps) {
           <span className="ml-2">in </span>
           <div className="gap-2 ml-2 inline-flex text-muted-foreground">
             {post.tags.map((tag) => (
-              <Tag tag={tag} key={tag} />
+              <Tag tag={tag.tag.name} key={tag.tag.name} />
             ))}
           </div>
         </div>
@@ -139,7 +232,6 @@ export default async function PostPage({ params }: PostPageProps) {
                 remarkPlugins: [remarkGfm],
                 rehypePlugins: [
                   rehypeSlug,
-                  // [rehypeAutolinkHeadings, rehypeAutolinkHeadingsOptions],
                   [rehypePrettyCode, rehypePrettyCodeOptions],
                 ],
               },
@@ -147,6 +239,21 @@ export default async function PostPage({ params }: PostPageProps) {
           />
         )}
       </article>
+      <div className="container max-w-5xl">
+        <hr className="border-t border-border mt-6" />
+        <PostOptions
+          session={session}
+          post={post}
+          commentCount={commentCount}
+        />
+
+        <CommentSection
+          post={post}
+          session={session}
+          initialComments={transformedComments}
+          commentCount={commentCount}
+        />
+      </div>
     </>
   );
 }

@@ -158,7 +158,6 @@ export default function PostsList({ userSession }: PostsListProps) {
           <>
             {posts.map((post, index) => {
               if (index === posts.length - 1) {
-                // Add a ref to the last post in the list
                 return (
                   <div key={index} ref={ref} className="border-b border-border">
                     <PostItem session={userSession} post={post} />

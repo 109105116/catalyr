@@ -14,10 +14,11 @@ export function Callout({
   return (
     <div
       className={cn(
-        "my-6 items-start rounded-md border border-l-4 py-2 px-4 w-full dark:max-w-none",
+        "my-6 items-start rounded-md border border-l-4 py-2 px-4 w-full max-w-none prose dark:prose-invert",
         {
-          "border-red-900 bg-red-50 dark:prose": type === "danger",
-          "border-yellow-900 bg-yellow-50 dark:prose": type === "warning",
+          "border-border bg-background": type === "default",
+          "border-red-900 bg-red-50": type === "danger",
+          "border-yellow-900 bg-yellow-50": type === "warning",
         }
       )}
       {...props}

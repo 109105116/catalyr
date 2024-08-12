@@ -9,6 +9,7 @@ import { useCallback, useState } from "react";
 import { Icons } from "./ui/icons";
 import type { Session } from "next-auth";
 import { useRouter } from "next/navigation";
+import VoteButtons from "./vote-buttons";
 
 interface PostItemProps {
   session: Session | null;
@@ -34,7 +35,6 @@ export default function PostItem({ session, post }: PostItemProps) {
       const prevScore = score;
       const prevUserVote = userVote;
 
-      // Optimistic update
       if (userVote === voteType) {
         setScore(prevScore + (voteType === "UP" ? -1 : 1));
         setUserVote(null);
@@ -49,13 +49,11 @@ export default function PostItem({ session, post }: PostItemProps) {
 
       try {
         const result = await vote(post.id, voteType);
-        // Delay the server update slightly to ensure the optimistic update is visible
         setTimeout(() => {
           setScore(result.score);
         }, 300);
       } catch (error) {
         console.error("Error voting:", error);
-        // Revert optimistic update on error
         setScore(prevScore);
         setUserVote(prevUserVote);
       }
@@ -66,30 +64,7 @@ export default function PostItem({ session, post }: PostItemProps) {
   return (
     <div className="relative flex justify-between items-center w-full px-2 py-2 align-middle border-t-[1px] border-border transition-all group-hover:text-muted-foreground hover:!text-foreground">
       <div className="flex items-center w-[70%]">
-        <div
-          className="flex flex-col h-full w-fit mr-4 "
-          onClick={(e) => e.preventDefault()}
-        >
-          <div
-            onClick={() => handleVote("UP")}
-            className={`h-fit w-fit cursor-pointer leading-none ${
-              userVote === "UP" && "text-green-400"
-            }`}
-          >
-            <Icons.upvote />
-          </div>
-          <div
-            onClick={() => handleVote("DOWN")}
-            className={`h-fit w-fit cursor-pointer leading-none ${
-              userVote === "DOWN" && "text-red-400"
-            }`}
-          >
-            <Icons.downvote />
-          </div>
-        </div>
-        <span className="inline-block w-[8%] mr-10">
-          {" " + abbreviateNumber(score) + " "}
-        </span>
+        <VoteButtons session={session} post={post} orientation={"VERTICAL"} />
         <Link
           className="w-fit mr-3 hover:underline"
           href={`p/${post.fileName}`}

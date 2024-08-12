@@ -77,11 +77,10 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // Transform the posts to include a userVote field
     const transformedPosts = posts.map((post) => ({
       ...post,
       userVote: post.votes.length > 0 ? post.votes[0].type : null,
-      votes: undefined, // Remove the votes array from the response
+      votes: undefined,
     }));
 
     return NextResponse.json(transformedPosts);

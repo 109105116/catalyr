@@ -2,7 +2,7 @@ import type { Post, User, Vote, Comment, PostTag } from "@prisma/client";
 
 import { Prisma } from "@prisma/client";
 
-export type ExtendedPost = Prisma.PostGetPayload<{
+type BasePost = Prisma.PostGetPayload<{
   include: {
     tags: {
       include: {
@@ -14,6 +14,15 @@ export type ExtendedPost = Prisma.PostGetPayload<{
         name: true;
       };
     };
-    userVote: "UP" | "DOWN";
   };
 }>;
+
+export type ExtendedPost = BasePost & {
+  userVote: "UP" | "DOWN" | null;
+};
+
+export type ExtendedComment = Comment & {
+  author?: User;
+  replies?: ExtendedComment[];
+  userVote: "UP" | "DOWN" | null;
+};

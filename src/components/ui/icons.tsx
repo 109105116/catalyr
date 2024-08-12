@@ -4,7 +4,7 @@ export const Icons = {
   user: User,
   upvote: (props: LucideProps) => (
     <svg
-      className="inline-block w-4 h-4 hover:text-green-400"
+      className="inline-block w-4 h-4 hover:text-green-600 dark:hover:text-green-400"
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -20,7 +20,7 @@ export const Icons = {
   ),
   downvote: (props: LucideProps) => (
     <svg
-      className="inline-block w-4 h-4 hover:text-red-400"
+      className="inline-block w-4 h-4 hover:text-red-600 dark:hover:text-red-400"
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"

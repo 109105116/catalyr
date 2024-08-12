@@ -1,0 +1,39 @@
+.comment-thread {
+  position: relative;
+}
+
+.child-comment {
+  padding-left: 20px;
+  margin-top: 3rem; /* Adjust this value to match your desired spacing */
+}
+
+.comment-line {
+  position: absolute;
+  top: -3rem; /* Should be negative of the margin-top */
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  background-color: rgba(204, 204, 204, 0.5); /* Reduced opacity to 50% */
+}
+
+.comment-content {
+  position: relative;
+  padding-left: 10px;
+}
+
+/* Adjust the last child to not extend below */
+.child-comment:last-child > .comment-line {
+  bottom: 3rem; /* Should match the margin-top */
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .comment-line {
+    background-color: rgba(
+      68,
+      68,
+      68,
+      0.5
+    ); /* Reduced opacity to 50% for dark mode */
+  }
+}

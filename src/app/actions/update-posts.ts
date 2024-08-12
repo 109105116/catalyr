@@ -26,33 +26,28 @@ async function upsertPost(
   post: Omit<Post, "id">,
   invalidTags: string[]
 ): Promise<void> {
-  // Validate tags against the predefined TAGS array
   const postInvalidTags = post.tags?.filter((tag) => !TAGS.includes(tag)) || [];
   if (postInvalidTags.length > 0) {
     invalidTags.push(...postInvalidTags);
-    return; // Exit early to avoid processing invalid posts
+    return;
   }
 
-  // Find the existing post by fileName
   const existingPost = await db.post.findUnique({
     where: { fileName: post.fileName },
     include: { tags: { select: { tag: { select: { name: true } } } } },
   });
 
   if (existingPost) {
-    // Fetch upvotes and downvotes for the post
     const votes = await db.vote.groupBy({
       by: ["type"],
       where: { postId: existingPost.id },
       _count: true,
     });
 
-    // Calculate the score
     const upvotes = votes.find((v) => v.type === "UP")?._count ?? 0;
     const downvotes = votes.find((v) => v.type === "DOWN")?._count ?? 0;
     const score = upvotes - downvotes;
 
-    // Update the post fields if any part of it has changed
     await db.post.update({
       where: { fileName: post.fileName },
       data: {
@@ -60,11 +55,10 @@ async function upsertPost(
         content: post.content,
         updatedAt: new Date(),
         authorId: post.authorId,
-        score: score, // Update the score
+        score: score,
       },
     });
 
-    // Determine which tags to add or remove
     const existingTagNames = existingPost.tags.map((tag) => tag.tag.name);
     const newTagNames = post.tags || [];
     const tagsToRemove = existingTagNames.filter(
@@ -74,7 +68,6 @@ async function upsertPost(
       (tag) => !existingTagNames.includes(tag)
     );
 
-    // Remove old tags
     if (tagsToRemove.length > 0) {
       const tagsToRemoveIds = await Promise.all(
         tagsToRemove.map(async (tagName) => {
@@ -83,7 +76,6 @@ async function upsertPost(
         })
       );
 
-      // Filter out null values
       const validTagsToRemoveIds = tagsToRemoveIds.filter(
         (id): id is string => id !== null
       );
@@ -96,7 +88,6 @@ async function upsertPost(
       });
     }
 
-    // Add new tags
     if (tagsToAdd.length > 0) {
       const newTagIds = await Promise.all(
         tagsToAdd.map(async (tagName) => {
@@ -115,7 +106,6 @@ async function upsertPost(
       });
     }
   } else {
-    // Insert the post and create its tags
     const tagsData = post.tags
       ? await Promise.all(
           post.tags.map(async (tagName) => {
@@ -153,7 +143,6 @@ async function upsertPost(
 async function deleteUnmatchedPosts(
   existingFileNames: string[]
 ): Promise<void> {
-  // Fetch posts from the database that do not match the existing file names
   const unmatchedPosts = await db.post.findMany({
     where: {
       fileName: {
@@ -163,13 +152,11 @@ async function deleteUnmatchedPosts(
   });
 
   for (const post of unmatchedPosts) {
-    // Delete related PostTag entries before deleting the post
     await db.postTag.deleteMany({
       where: {
         postId: post.id,
       },
     });
-    // Delete the post
     await db.post.delete({
       where: { id: post.id },
     });
@@ -183,14 +170,12 @@ export async function updatePosts() {
     const postsDirectory = path.join(process.cwd(), "src/content/posts");
     const posts = await compileMDXtoJSON(postsDirectory);
 
-    // Extract file names from valid posts
     const validFileNames = posts.map((post) => post.fileName);
 
     for (const post of posts) {
       await upsertPost(post, invalidTags);
     }
 
-    // Delete posts that do not match any MDX file
     await deleteUnmatchedPosts(validFileNames);
 
     if (invalidTags.length > 0) {

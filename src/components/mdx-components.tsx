@@ -196,7 +196,7 @@ const components: MDXRemoteProps["components"] = {
   ),
   "footnote-def": ({ className, ...props }: ComponentWithClassNameProps) => (
     <div
-      className={cn("text-sm mt-6 pt-4 border-t border-gray-200", className)}
+      className={cn("text-sm mt-6 pt-4 border-t border-border", className)}
       {...props}
     />
   ),

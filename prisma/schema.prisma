@@ -85,11 +85,15 @@ model Comment {
   postId    String
 
   replyToId String?
-  replyTo   Comment?  @relation("ReplyTo", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replyTo   Comment?  @relation("ReplyTo", fields: [replyToId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   replies   Comment[] @relation("ReplyTo")
 
   votes     CommentVote[]
   commentId String?
+
+  score Int @default(0)
+
+  deleted Boolean @default(false)
 
   @@index([replyToId])
   @@index([postId])

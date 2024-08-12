@@ -8,6 +8,8 @@ export type SiteConfig = typeof siteConfig;
 
 export const INFINITE_SCROLL_PAGINATION_RESULTS = 5;
 
+export const MAX_COMMENT_DEPTH = 5;
+
 export const TAGS = [
   "olympiads",
   "scholastic",
