@@ -5,7 +5,7 @@ export default function Home() {
     <>
       <div className="w-full max-w-2xl pb-10">
         <p className="indent-3">
-          Welcome to ______! We know the feeling of uncertainty as a
+          Welcome to Catalyr! We know the feeling of uncertainty as a
           pre-collegiate student, wanting to reach excellence but not knowing
           how. That&apos;s why we gather the stories and advice of accomplished
           students from across the US to offer insights and guidance to
